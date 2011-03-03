@@ -237,7 +237,7 @@ Gotowe - teraz możesz przystąpić do utworzenia nowego repozitorium. Zrobimy t
 
 Teraz John, Josie lub Jessica mogą sklonować i/lub pchać zmiany do tego repozytorium. W przykładzie poniżej pokażę jak na przykład John mógłby swoje lokalne repozytorium wypchać na nasze świeżo utworzone. Jedyne co musiałby zrobić to dodanie naszego repozytorium jako `remote` swojego i wykonanie zwyczajnego `push`a. W przykładzie zakładam że serwer znajduje się pod nazwą domenową `gitserver`.
 
-	# na komputerze John'a
+	# na komputerze Johna
 	$ cd myproject
 	$ git init
 	$ git add .
@@ -245,36 +245,41 @@ Teraz John, Josie lub Jessica mogą sklonować i/lub pchać zmiany do tego repoz
 	$ git remote add origin git@gitserver:/opt/git/project.git
 	$ git push origin master
 
-At this point, the others can clone it down and push changes back up just as easily:
+Ok, teraz wszyscy pozostali użytkownicy (Josie, Jessica) mogą pobrać zmiany Johna: 
 
 	$ git clone git@gitserver:/opt/git/project.git
 	$ vim README
 	$ git commit -am 'fix for the README file'
 	$ git push origin master
 
-With this method, you can quickly get a read/write Git server up and running for a handful of developers.
+Korzystając z tej metody stosunkowo szybko możesz utworzyć bezpieczne repozytorium do współpracy między garstką developerów.
+Flow jednak jest dość "scentralizowany" i zdecentralizowana charakterystyka Gita tutaj nie jest aż tak widoczna.
 
-As an extra precaution, you can easily restrict the 'git' user to only doing Git activities with a limited shell tool called `git-shell` that comes with Git. If you set this as your 'git' user’s login shell, then the 'git' user can’t have normal shell access to your server. To use this, specify `git-shell` instead of bash or csh for your user’s login shell. To do so, you’ll likely have to edit your `/etc/passwd` file:
+Wracając raz jeszcze na stronę serwera... Zadbajmy troszkę bardziej o bezpieczeństwo naszego uzytkownika `git`. Ponieważ nie jest to zwyczajny użytkownik a jedynie taki "udostępniacz" i raczej nie chcielibyśmy aby ktoś się bezpośrednio na niego logował - nadal jednak pozwalając użytkownikom na dostęp do tego konta celem wykonywania push/pull.
+
+Na szczęście git przychodzi od razu z tego typu narzędziem które ułatwi nam setup takiego prościutkiego zabezpieczenia. Jedyne co musimy wykonać to podmiana shella używanego przez użytkownika git na `git-shell`. Aby to wykonać możemy na przykład wyedytować plik konfiguracyjny /etc/passwd:
 
 	$ sudo vim /etc/passwd
 
-At the bottom, you should find a line that looks something like this:
+Gdzie powinna się znajdywać linia podobna do tej:
 
 	git:x:1000:1000::/home/git:/bin/sh
 
-Change `/bin/sh` to `/usr/bin/git-shell` (or run `which git-shell` to see where it’s installed). The line should look something like this:
+Tutaj własnie chcemy zmienić `/bin/sh` na `/usr/bin/git-shell` (jeżeli nie istnieje plik /sur/bin/git-shell, uruchom `which git-shell` aby dowiedzieć się gdzie znajduje się ta komenda). Po modyfikacji linia powinna wyglądać następująco:
 
 	git:x:1000:1000::/home/git:/usr/bin/git-shell
 
-Now, the 'git' user can only use the SSH connection to push and pull Git repositories and can’t shell onto the machine. If you try, you’ll see a login rejection like this:
+Teraz uzytkownik git będzie niegrzecznie odrzucał wszelkie próby zalogowania się na niego zdalnie (a operacje push/pull nadal będą poprawnie działać):
 
 	$ ssh git@gitserver
 	fatal: What do you think I am? A shell?
 	Connection to gitserver closed.
 
-## Public Access ##
+## Publicznie dostępne repozytorium ##
 
-What if you want anonymous read access to your project? Perhaps instead of hosting an internal private project, you want to host an open source project. Or maybe you have a bunch of automated build servers or continuous integration servers that change a lot, and you don’t want to have to generate SSH keys all the time — you just want to add simple anonymous read access.
+Co jeśli chcesz udostępnić dowolnym (anonimowym) użytkownikom dostęp tylko do odczytu do twojego projektu? Przykładami takich sytuacji jest np. prowadzenie projektu opensource bądź udostępnienie repozytorium serwerom ciągłej integracji - w przypadku gdy nie masz skąd zdobyć ich kluczy publicznych.
+
+Najprostszym ze sposobów wykonania czegoś takiego (dla małych projektów) jest zwyczajne udostępnienie twojego repozytorium przez ........... **TODO**
 
 Probably the simplest way for smaller setups is to run a static web server with its document root where your Git repositories are, and then enable that `post-update` hook we mentioned in the first section of this chapter. Let’s work from the previous example. Say you have your repositories in the `/opt/git` directory, and an Apache server is running on your machine. Again, you can use any web server for this; but as an example, we’ll demonstrate some basic Apache configurations that should give you an idea of what you might need.
 
