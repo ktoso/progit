@@ -203,14 +203,16 @@ Więcej szczegółów i porad dotyczących tworzenia kluczy SSH w różnych syst
 
 ## Konfiguracja serwera ##
 
-Let’s walk through setting up SSH access on the server side. In this example, you’ll use the `authorized_keys` method for authenticating your users. We also assume you’re running a standard Linux distribution like Ubuntu. First, you create a 'git' user and a `.ssh` directory for that user.
+Przejdziemy teraz przez proces udostępnienia Git via SSH od strony serwera. W tym przykadzie skorzystamy z weryfikacji kluczy publicznych łączących się z nami klientów poprzez umieszczenie ich w pliku `authorized_keys`. Metoda ta powinna poprawnie działać w każdym typowym systemie GNU/Linuksowym jak na przykład Ubuntu czy Fedora. Najpierw stwórz dedykowanego gitowi nowego uzytkownika na serwerze.
 
 	$ sudo adduser git
 	$ su git
 	$ cd
-	$ mkdir .ssh
+	$ mkdir -p .ssh
 
-Next, you need to add some developer SSH public keys to the `authorized_keys` file for that user. Let’s assume you’ve received a few keys by e-mail and saved them to temporary files. Again, the public keys look something like this:
+Folder .ssh prawpododobnie będzie już istniał po utworzeniu uzytkownika, jednak nie zaszkodzi się upewnić - poprzez wywołanie mkdir (który utworzy ten katalog jeżeli jeszcze nie istnieje).
+
+Następnym krokiem jest dodanie kluczy publicznych naszych developerów do pliku `~/.ssh/autorized_keys`. Dla przypomnienia, klucz taki mogłeś otrzymać na przykład poprzez email, od uzytkownika John który wykonał poniższą komendę na swoim komputerze:
 
 	$ cat /tmp/id_rsa.john.pub
 	ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCB007n/ww+ouN4gSLKssMxXnBOvf9LGt4L
@@ -220,22 +222,22 @@ Next, you need to add some developer SSH public keys to the `authorized_keys` fi
 	O7TCUSBdLQlgMVOFq1I2uPWQOkOWQAHukEOmfjy2jctxSDBQ220ymjaNsHT4kgtZg2AYYgPq
 	dAv8JggJICUvax2T9va5 gsg-keypair
 
-You just append them to your `authorized_keys` file:
+Zakładając, że zapisałeś sobie przekazane Ci klucze publiczne w folderze /tmp mógłbyś je sprawnie dodać do `authorized_keys` w następujący sposób:
 
 	$ cat /tmp/id_rsa.john.pub >> ~/.ssh/authorized_keys
 	$ cat /tmp/id_rsa.josie.pub >> ~/.ssh/authorized_keys
 	$ cat /tmp/id_rsa.jessica.pub >> ~/.ssh/authorized_keys
 
-Now, you can set up an empty repository for them by running `git init` with the `--bare` option, which initializes the repository without a working directory:
+Gotowe - teraz możesz przystąpić do utworzenia nowego repozitorium. Zrobimy to przez `git init` z podaną opcją `--bare`, która powoduje utworzenie repozytorium bez folderu roboczego. **TODO chyba słabe słowo na to**
 
 	$ cd /opt/git
 	$ mkdir project.git
 	$ cd project.git
 	$ git --bare init
 
-Then, John, Josie, or Jessica can push the first version of their project into that repository by adding it as a remote and pushing up a branch. Note that someone must shell onto the machine and create a bare repository every time you want to add a project. Let’s use `gitserver` as the hostname of the server on which you’ve set up your 'git' user and repository. If you’re running it internally, and you set up DNS for `gitserver` to point to that server, then you can use the commands pretty much as is:
+Teraz John, Josie lub Jessica mogą sklonować i/lub pchać zmiany do tego repozytorium. W przykładzie poniżej pokażę jak na przykład John mógłby swoje lokalne repozytorium wypchać na nasze świeżo utworzone. Jedyne co musiałby zrobić to dodanie naszego repozytorium jako `remote` swojego i wykonanie zwyczajnego `push`a. W przykładzie zakładam że serwer znajduje się pod nazwą domenową `gitserver`.
 
-	# on Johns computer
+	# na komputerze John'a
 	$ cd myproject
 	$ git init
 	$ git add .
